@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ingress-nginx
+  namespace: argocd
+spec:
+  destination:
+    name: in-cluster
+    namespace: ingress-nginx
+  project: default
+  source:
+    chart: ingress-nginx
+    helm:
+      parameters:
+        - name: controller.replicaCount
+          value: '2'
+      values: |-
+        controller:
+          extraArgs:
+            enable-ssl-passthrough: ""
+          config:
+            limit-rate: "1048576"
+            limit-rate-after: "5242880"
+            proxy-buffering: "on"
+          service:
+            annotations:
+              service.beta.kubernetes.io/oci-load-balancer-shape: flexible
+              service.beta.kubernetes.io/oci-load-balancer-shape-flex-min: "10"
+              service.beta.kubernetes.io/oci-load-balancer-shape-flex-max: "10"
+              oci.oraclecloud.com/oci-network-security-groups: ocid1.networksecuritygroup.oc1.ap-tokyo-1.aaaaaaaaecnwhqofbn6uod4kteeu74sdxpsiz7cc72ph4ymygewjf2cezfqa
+    repoURL: https://kubernetes.github.io/ingress-nginx
+    targetRevision: 4.12.0
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

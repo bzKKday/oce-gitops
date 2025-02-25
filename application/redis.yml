@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: redis
+  namespace: argocd
+spec:
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+  destination:
+    name: in-cluster
+    namespace: application
+  project: default
+  source:
+    chart: redis
+    helm:
+      parameters:
+        - name: architecture
+          value: standalone
+      values: |-
+        master:
+          resources:
+            limits:
+              cpu: 150m
+              ephemeral-storage: 8Gi
+              memory: 6Gi
+            requests:
+              cpu: 100m
+              ephemeral-storage: 4Gi
+              memory: 3Gi
+    repoURL: registry-1.docker.io/bitnamicharts
+    targetRevision: 20.9.0

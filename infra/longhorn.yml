@@ -1,0 +1,51 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: longhorn
+  namespace: argocd
+spec:
+  destination:
+    name: in-cluster
+    namespace: longhorn-system
+  project: default
+  source:
+    chart: longhorn
+    helm:
+      parameters:
+        - name: csi.attacherReplicaCount
+          value: '1'
+        - name: csi.provisionerReplicaCount
+          value: '1'
+        - name: csi.resizerReplicaCount
+          value: '1'
+        - name: csi.snapshotterReplicaCount
+          value: '1'
+      values: |
+        preUpgradeChecker:
+          jobEnabled: false
+        longhornUI:
+          replicas: 1
+        defaultSettings:
+          storageMinimalAvailablePercentage: 10
+        persistence:
+          defaultClassReplicaCount: 2
+        # ingress:
+        #   enabled: true
+        #   tls: true
+        #   host: storage.bzimba.com
+        #   tlsSecret: longhorn-cert
+        #   ingressClassName: nginx
+        #   annotations:
+        #     cert-manager.io/cluster-issuer: letsencrypt-prod
+        #     nginx.ingress.kubernetes.io/auth-type: basic
+        #     nginx.ingress.kubernetes.io/ssl-redirect: 'false'
+        #     nginx.ingress.kubernetes.io/auth-secret: basic-auth
+        #     nginx.ingress.kubernetes.io/auth-realm: "Authentication Required"
+    repoURL: https://charts.longhorn.io/
+    targetRevision: v1.8.0
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
