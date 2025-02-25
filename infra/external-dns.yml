@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: external-dns
+  namespace: argocd
+spec:
+  destination:
+    name: in-cluster
+    namespace: external-dns
+  project: default
+  source:
+    chart: external-dns
+    helm:
+      parameters:
+        - name: provider.name
+          value: cloudflare
+      values: |-
+        env:
+        env:
+          - name: CF_API_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: cloudflare-api-key
+                key: apiKey
+    repoURL: https://kubernetes-sigs.github.io/external-dns/
+    targetRevision: 1.15.2
